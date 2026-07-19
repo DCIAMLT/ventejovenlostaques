@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Vente Joven Los Taques</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="body-login">
+    <div class="login-overlay"></div>
+    
+    <div class="login-container">
+        <!-- Logo de la organización -->
+        <img src="img/ventejlostaques.png" alt="Logo Vente Joven">
+        <h2>Control Interno Municipal</h2>
+        
+        <div class="form-group">
+            <label for="cedulaInput">Cédula del Coordinador</label>
+            <input type="text" id="cedulaInput" class="form-control" placeholder="Ej: V-31.422.303" onkeypress="if(event.key === 'Enter') login()">
+        </div>
+        
+        <button class="btn-login" onclick="login()">Iniciar Sesión</button>
+    </div>
+
+    <script src="js/funciones.js"></script>
+    <script>
+        // Prevenir entrada si ya está logueado
+        verificarSesion(true);
+    </script>
+</body>
+</html>
