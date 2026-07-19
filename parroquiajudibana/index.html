@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estructura Parroquial - Judibana</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header>
+        <div class="menu-toggle" id="menuToggle">☰</div>
+        <div class="user-info" id="userInfo"></div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="close-sidebar" id="closeSidebar">&times;</div>
+        <ul class="sidebar-menu">
+            <li><a href="../inicio/index.html">Inicio</a></li>
+            <li class="has-children">
+                <a href="#">Estructura</a>
+                <ul class="submenu show">
+                    <li><a href="../estructuramunicipal/index.html">Municipal</a></li>
+                    <li class="has-children">
+                        <a href="#">Parroquial</a>
+                        <ul class="submenu-2 show">
+                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
+                            <li><a href="../parroquiajudibana/index.html" style="color: var(--azul-oscuro)">Judibana</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="../miembros/index.html">Miembros</a></li>
+            <li><a onclick="logout()" style="color: #ff5252;">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h2 class="page-title">Estructura Parroquial - Judibana</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cargo</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Cédula</th>
+                        <th>Correo Electrónico</th>
+                        <th>Teléfono</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEstructuraBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="modal" id="modalDesignar">
+        <div class="modal-content">
+            <h3>Realizar Designación</h3>
+            <select id="selectMiembroDesignar" class="form-control"></select>
+            <div class="modal-actions">
+                <button class="btn-action" style="background:#ccc;" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-action btn-designar" onclick="procesarDesignacion()">Asignar Cargo</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
+    </footer>
+
+    <script src="../js/funciones.js"></script>
+    <script>
+        verificarSesion();
+        initEstructuraPage('judibana');
+    </script>
+</body>
+</html>
