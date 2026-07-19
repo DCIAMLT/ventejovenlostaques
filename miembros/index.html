@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miembros de Vente Joven Los Taques</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header>
+        <div class="menu-toggle" id="menuToggle">☰</div>
+        <div class="user-info" id="userInfo"></div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="close-sidebar" id="closeSidebar">&times;</div>
+        <ul class="sidebar-menu">
+            <li><a href="../inicio/index.html">Inicio</a></li>
+            <li class="has-children">
+                <a href="#">Estructura</a>
+                <ul class="submenu">
+                    <li><a href="../estructuramunicipal/index.html">Municipal</a></li>
+                    <li class="has-children">
+                        <a href="#">Parroquial</a>
+                        <ul class="submenu-2">
+                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
+                            <li><a href="../parroquiajudibana/index.html">Judibana</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="../miembros/index.html" style="color: var(--azul-oscuro)">Miembros</a></li>
+            <li><a onclick="logout()" style="color: #ff5252;">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h2 class="page-title">Miembros de Vente Joven Los Taques</h2>
+
+        <!-- Formulario para agregar / editar militantes -->
+        <div class="form-inline-container">
+            <form id="miembroForm" onsubmit="guardarMiembroForm(event)">
+                <div class="form-grid">
+                    <div>
+                        <input type="text" id="mNombre" class="form-control" placeholder="Nombre" required>
+                    </div>
+                    <div>
+                        <input type="text" id="mApellido" class="form-control" placeholder="Apellido" required>
+                    </div>
+                    <div>
+                        <input type="text" id="mCedula" class="form-control" placeholder="Cédula" required>
+                    </div>
+                    <div>
+                        <input type="text" id="mTelefono" class="form-control" placeholder="Teléfono" required>
+                    </div>
+                    <div>
+                        <input type="email" id="mCorreo" class="form-control" placeholder="Correo electrónico" required>
+                    </div>
+                </div>
+                <button type="submit" id="btnSubmitMiembro" class="btn-login" style="width:auto; padding: 0.6rem 2rem;">Registrar Miembro</button>
+            </form>
+        </div>
+
+        <!-- Buscador superior -->
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar miembro por Nombre, Apellido o Cédula..." oninput="renderMiembrosTable(this.value)">
+        </div>
+
+        <!-- Cuadrícula de miembros sin cargos fijos -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Cédula</th>
+                        <th>Teléfono</th>
+                        <th>Correo Electrónico</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaMiembrosBody">
+                    <!-- Dinámico -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
+    </footer>
+
+    <script src="../js/funciones.js"></script>
+    <script>
+        verificarSesion();
+        renderMiembrosTable();
+    </script>
+</body>
+</html>
