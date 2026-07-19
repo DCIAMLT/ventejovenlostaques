@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estructura Municipal</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header>
+        <div class="menu-toggle" id="menuToggle">☰</div>
+        <div class="user-info" id="userInfo"></div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="close-sidebar" id="closeSidebar">&times;</div>
+        <ul class="sidebar-menu">
+            <li><a href="../inicio/index.html">Inicio</a></li>
+            <li class="has-children">
+                <a href="#">Estructura</a>
+                <ul class="submenu show"> <!-- Queda abierto para ver dónde se está -->
+                    <li><a href="../estructuramunicipal/index.html" style="color: var(--azul-oscuro)">Municipal</a></li>
+                    <li class="has-children">
+                        <a href="#">Parroquial</a>
+                        <ul class="submenu-2">
+                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
+                            <li><a href="../parroquiajudibana/index.html">Judibana</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="../miembros/index.html">Miembros</a></li>
+            <li><a onclick="logout()" style="color: #ff5252;">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h2 class="page-title">Estructura Municipal</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cargo</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Cédula</th>
+                        <th>Correo Electrónico</th>
+                        <th>Teléfono</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEstructuraBody">
+                    <!-- Inyección dinámica JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal Emergente para Designar Miembros -->
+    <div class="modal" id="modalDesignar">
+        <div class="modal-content">
+            <h3>Realizar Designación</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem; color:#666;">Selecciona un militante previamente registrado en la sección de Miembros.</p>
+            <select id="selectMiembroDesignar" class="form-control"></select>
+            <div class="modal-actions">
+                <button class="btn-action" style="background:#ccc;" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-action btn-designar" onclick="procesarDesignacion()">Asignar Cargo</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
+    </footer>
+
+    <script src="../js/funciones.js"></script>
+    <script>
+        verificarSesion();
+        initEstructuraPage('municipal');
+    </script>
+</body>
+</html>
