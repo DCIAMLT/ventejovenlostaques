@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Vente Joven Los Taques</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+
+    <header>
+        <div class="menu-toggle" id="menuToggle">☰</div>
+        <div class="user-info" id="userInfo">Cargando...</div>
+    </header>
+
+    <!-- Menú Desplegable de Niveles -->
+    <nav class="sidebar" id="sidebar">
+        <div class="close-sidebar" id="closeSidebar">&times;</div>
+        <ul class="sidebar-menu">
+            <li><a href="../inicio/index.html">Inicio</a></li>
+            <li class="has-children">
+                <a href="#">Estructura</a>
+                <ul class="submenu">
+                    <li><a href="../estructuramunicipal/index.html">Municipal</a></li>
+                    <li class="has-children">
+                        <a href="#">Parroquial</a>
+                        <ul class="submenu-2">
+                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
+                            <li><a href="../parroquiajudibana/index.html">Judibana</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="../miembros/index.html">Miembros</a></li>
+            <li><a onclick="logout()" style="color: #ff5252; margin-top: 20px;">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="inicio-container">
+            <img src="../img/ventejlostaques.png" class="inicio-bg-logo" alt="Watermark">
+            <h1 class="inicio-bienvenida">Bienvenido a la página de Vente Joven Los Taques</h1>
+        </div>
+    </main>
+
+    <footer>
+        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
+    </footer>
+
+    <script src="../js/funciones.js"></script>
+    <script>verificarSesion();</script>
+</body>
+</html>
