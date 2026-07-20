@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vente Joven Los Taques</title>
-    <!-- Favicon para subcarpetas -->
-    <link rel="icon" type="image/png" href="../img/ventejlostaquesicon.png">
+    <title>Miembros de Vente Joven Los Taques</title>
+    <link rel="icon" type="image/png" href="../img/ventejlostaques.png">
     <link rel="stylesheet" href="../css/estilos.css">
 </head>
 <body>
@@ -50,13 +49,14 @@
                         <input type="text" id="mApellido" class="form-control" placeholder="Apellido" required>
                     </div>
                     <div>
-                        <input type="text" id="mCedula" class="form-control" placeholder="Cédula" required>
+                        <!-- Cédula, Teléfono y Correo ahora son opcionales -->
+                        <input type="text" id="mCedula" class="form-control" placeholder="Cédula (Opcional)">
                     </div>
                     <div>
-                        <input type="text" id="mTelefono" class="form-control" placeholder="Teléfono" required>
+                        <input type="text" id="mTelefono" class="form-control" placeholder="Teléfono (Opcional)">
                     </div>
                     <div>
-                        <input type="email" id="mCorreo" class="form-control" placeholder="Correo electrónico" required>
+                        <input type="text" id="mCorreo" class="form-control" placeholder="Correo electrónico (Opcional)">
                     </div>
                 </div>
                 <button type="submit" id="btnSubmitMiembro" class="btn-login" style="width:auto; padding: 0.6rem 2rem;">Registrar Miembro</button>
@@ -68,7 +68,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar miembro por Nombre, Apellido o Cédula..." oninput="renderMiembrosTable(this.value)">
         </div>
 
-        <!-- Cuadrícula de miembros sin cargos fijos -->
+        <!-- Cuadrícula de miembros -->
         <div class="table-responsive">
             <table>
                 <thead>
