@@ -278,6 +278,7 @@ function actualizarSelectDesignaciones() {
     });
 }
 
+// 1. Corrige esta función (cambia saveEstructures por saveEstructuras)
 function procesarDesignacion() {
     const select = document.getElementById("selectMiembroDesignar");
     const idMiembro = select.value;
@@ -288,16 +289,45 @@ function procesarDesignacion() {
 
     let estructuras = getEstructuras();
     estructuras[ambitoActual][cargoSeleccionado] = idMiembro;
-    saveEstructures(estructuras);
+    
+    // --- CORRECCIÓN AQUÍ (Estaba saveEstructures) ---
+    saveEstructuras(estructuras); 
     
     cerrarModal();
     renderEstructuraTable();
 }
 
+// 2. Por si acaso, revisa la función removerCargo que también debe usar saveEstructuras
 function removerCargo(cargo) {
     if(!confirm(`¿Deseas dejar vacante el cargo: ${cargo}?`)) return;
     let estructuras = getEstructuras();
     delete estructuras[ambitoActual][cargo];
-    saveEstructures(estructuras);
+    
+    // --- CORRECCIÓN AQUÍ ---
+    saveEstructuras(estructuras);
     renderEstructuraTable();
+}
+
+// 3. Revisa también eliminarMiembro en la parte donde limpia asignaciones
+function eliminarMiembro(id) {
+    if (!confirm("¿Seguro que deseas eliminar este miembro? Se quitará de cualquier cargo asignado.")) return;
+    
+    let miembros = getMiembros();
+    miembros = miembros.filter(m => m.id !== id);
+    saveMiembros(miembros);
+
+    // Limpiar de las estructuras si estaba asignado
+    let estructuras = getEstructuras();
+    ['municipal', 'los_taques', 'judibana'].forEach(amb => {
+        for (let cargo in estructuras[amb]) {
+            if (estructuras[amb][cargo] === id) {
+                delete estructuras[amb][cargo];
+            }
+        }
+    });
+    
+    // --- CORRECCIÓN AQUÍ (Estaba saveEstructures) ---
+    saveEstructuras(estructuras);
+
+    renderMiembrosTable();
 }
