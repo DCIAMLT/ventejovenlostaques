@@ -1,5 +1,5 @@
 // CONFIGURACIÓN DE ACCESO DE DIEGO
-const CEDULA_AUTORIZADA = "V-31.422.303";
+const CEDULA_AUTORIZADA = "31422303";
 const USER_STRING = "Bienvenido: Diego García (V-31.422.303) - Coordinador Municipal de Vente Joven Los Taques";
 
 // Verificar sesión al cargar páginas internas
