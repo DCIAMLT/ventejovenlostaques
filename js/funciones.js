@@ -1,5 +1,5 @@
 // CONFIGURACIÓN DE ACCESO DE DIEGO
-const CEDULA_AUTORIZADA = "31422303";
+const CEDULA_AUTORIZADA = "V-31.422.303";
 const USER_STRING = "Bienvenido: Diego García (V-31.422.303) - Coordinador Municipal de Vente Joven Los Taques";
 
 // Verificar sesión al cargar páginas internas
@@ -11,7 +11,6 @@ function verificarSesion(isLoginPage = false) {
         }
     } else {
         if (sesion !== "true") {
-            // Reajustar ruta si estamos en subcarpetas
             const pathDepth = window.location.pathname.split('/').length;
             if(pathDepth > 3) {
                 window.location.href = "../index.html";
@@ -19,7 +18,6 @@ function verificarSesion(isLoginPage = false) {
                 window.location.href = "../index.html";
             }
         } else {
-            // Insertar info de usuario en el header
             const container = document.getElementById("userInfo");
             if (container) container.textContent = USER_STRING;
         }
@@ -56,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeSidebar.addEventListener("click", () => sidebar.classList.remove("active"));
     }
 
-    // Lógica de submenús colapsables por niveles
     const dropdowns = document.querySelectorAll(".has-children > a");
     dropdowns.forEach(trigger => {
         trigger.addEventListener("click", (e) => {
@@ -132,9 +129,11 @@ function guardarMiembroForm(e) {
     e.preventDefault();
     const nombre = document.getElementById("mNombre").value.trim();
     const apellido = document.getElementById("mApellido").value.trim();
-    const cedula = document.getElementById("mCedula").value.trim();
-    const telefono = document.getElementById("mTelefono").value.trim();
-    const correo = document.getElementById("mCorreo").value.trim();
+    
+    // Si no se introduce dato, asigna "S/D" por defecto
+    const cedula = document.getElementById("mCedula").value.trim() || "S/D";
+    const telefono = document.getElementById("mTelefono").value.trim() || "S/D";
+    const correo = document.getElementById("mCorreo").value.trim() || "S/D";
 
     let miembros = getMiembros();
 
@@ -143,7 +142,8 @@ function guardarMiembroForm(e) {
         miembroEditandoId = null;
         document.getElementById("btnSubmitMiembro").textContent = "Registrar Miembro";
     } else {
-        if(miembros.some(m => m.cedula === cedula)) {
+        // Validar duplicado únicamente si introdujo una cédula válida diferente de S/D
+        if(cedula !== "S/D" && miembros.some(m => m.cedula === cedula)) {
             alert("Esta cédula ya está registrada.");
             return;
         }
@@ -164,9 +164,9 @@ function prepararEdicion(id) {
 
     document.getElementById("mNombre").value = m.nombre;
     document.getElementById("mApellido").value = m.apellido;
-    document.getElementById("mCedula").value = m.cedula;
-    document.getElementById("mTelefono").value = m.telefono;
-    document.getElementById("mCorreo").value = m.correo;
+    document.getElementById("mCedula").value = m.cedula === "S/D" ? "" : m.cedula;
+    document.getElementById("mTelefono").value = m.telefono === "S/D" ? "" : m.telefono;
+    document.getElementById("mCorreo").value = m.correo === "S/D" ? "" : m.correo;
 
     miembroEditandoId = id;
     document.getElementById("btnSubmitMiembro").textContent = "Actualizar Datos";
@@ -179,7 +179,6 @@ function eliminarMiembro(id) {
     miembros = miembros.filter(m => m.id !== id);
     saveMiembros(miembros);
 
-    // Limpiar de las estructuras si estaba asignado
     let estructuras = getEstructuras();
     ['municipal', 'los_taques', 'judibana'].forEach(amb => {
         for (let cargo in estructuras[amb]) {
@@ -188,8 +187,8 @@ function eliminarMiembro(id) {
             }
         }
     });
-    saveEstructures(estructuras);
-
+    
+    saveEstructuras(estructuras);
     renderMiembrosTable();
 }
 
@@ -278,7 +277,6 @@ function actualizarSelectDesignaciones() {
     });
 }
 
-// 1. Corrige esta función (cambia saveEstructures por saveEstructuras)
 function procesarDesignacion() {
     const select = document.getElementById("selectMiembroDesignar");
     const idMiembro = select.value;
@@ -289,45 +287,16 @@ function procesarDesignacion() {
 
     let estructuras = getEstructuras();
     estructuras[ambitoActual][cargoSeleccionado] = idMiembro;
-    
-    // --- CORRECCIÓN AQUÍ (Estaba saveEstructures) ---
-    saveEstructuras(estructuras); 
+    saveEstructuras(estructuras);
     
     cerrarModal();
     renderEstructuraTable();
 }
 
-// 2. Por si acaso, revisa la función removerCargo que también debe usar saveEstructuras
 function removerCargo(cargo) {
     if(!confirm(`¿Deseas dejar vacante el cargo: ${cargo}?`)) return;
     let estructuras = getEstructuras();
     delete estructuras[ambitoActual][cargo];
-    
-    // --- CORRECCIÓN AQUÍ ---
     saveEstructuras(estructuras);
     renderEstructuraTable();
-}
-
-// 3. Revisa también eliminarMiembro en la parte donde limpia asignaciones
-function eliminarMiembro(id) {
-    if (!confirm("¿Seguro que deseas eliminar este miembro? Se quitará de cualquier cargo asignado.")) return;
-    
-    let miembros = getMiembros();
-    miembros = miembros.filter(m => m.id !== id);
-    saveMiembros(miembros);
-
-    // Limpiar de las estructuras si estaba asignado
-    let estructuras = getEstructuras();
-    ['municipal', 'los_taques', 'judibana'].forEach(amb => {
-        for (let cargo in estructuras[amb]) {
-            if (estructuras[amb][cargo] === id) {
-                delete estructuras[amb][cargo];
-            }
         }
-    });
-    
-    // --- CORRECCIÓN AQUÍ (Estaba saveEstructures) ---
-    saveEstructuras(estructuras);
-
-    renderMiembrosTable();
-}
