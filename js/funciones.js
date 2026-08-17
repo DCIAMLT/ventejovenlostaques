@@ -31,7 +31,7 @@ function login() {
         localStorage.setItem("sesion_activa", "true");
         window.location.href = "inicio/index.html";
     } else {
-        alert("Cédula no autorizada para el control interno municipal.");
+        alert("Código de Acceso Único es Incorrecto.");
     }
 }
 
