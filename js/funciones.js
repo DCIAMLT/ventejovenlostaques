@@ -1,4 +1,20 @@
-// CONFIGURACIÓN DE ACCESO DE DIEGO
+// CONFIGURACIÓN DE FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyCNs1ZDsZ-lJayR2aXjkoASEMVXz4GiAXs",
+  authDomain: "ventejovenlostaques.firebaseapp.com",
+  projectId: "ventejovenlostaques",
+  storageBucket: "ventejovenlostaques.firebasestorage.app",
+  messagingSenderId: "314944402934",
+  appId: "1:314944402934:web:32558ad1028e504e4683d7"
+};
+
+// Inicialización de Firebase (Compatibilidad Web SDK v8/v9)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+
+// CONFIGURACIÓN DE ACCESO
 const CEDULA_AUTORIZADA = "11053142";
 const USER_STRING = "Bienvenido/a al Sistema de Control Interno de Vente Joven Los Taques";
 
@@ -12,11 +28,7 @@ function verificarSesion(isLoginPage = false) {
     } else {
         if (sesion !== "true") {
             const pathDepth = window.location.pathname.split('/').length;
-            if(pathDepth > 3) {
-                window.location.href = "../index.html";
-            } else {
-                window.location.href = "../index.html";
-            }
+            window.location.href = pathDepth > 3 ? "../index.html" : "../index.html";
         } else {
             const container = document.getElementById("userInfo");
             if (container) container.textContent = USER_STRING;
@@ -41,7 +53,7 @@ function logout() {
     window.location.href = pathDepth > 3 ? "../index.html" : "../index.html"; 
 }
 
-// INTERFAZ DE MENÚ HAMBURGUESA Y DESPLEGABLES
+// MENÚ HAMBURGUESA Y DESPLEGABLES
 document.addEventListener("DOMContentLoaded", () => {
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
@@ -66,44 +78,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// --- GESTIÓN DE DATA (LOCALSTORAGE) ---
-function getMiembros() {
-    return JSON.parse(localStorage.getItem("vj_miembros")) || [];
-}
-
-function saveMiembros(data) {
-    localStorage.setItem("vj_miembros", JSON.stringify(data));
-}
-
-function getEstructuras() {
-    return JSON.parse(localStorage.getItem("vj_estructuras")) || {
-        municipal: {},
-        los_taques: {},
-        judibana: {}
-    };
-}
-
-function saveEstructuras(data) {
-    localStorage.setItem("vj_estructuras", JSON.stringify(data));
-}
-
-// --- LOGICA DE LA PÁGINA DE MIEMBROS ---
+// --- GESTIÓN DE MIEMBROS CON FIREBASE (TIEMPO REAL) ---
 let miembroEditandoId = null;
+let listaMiembrosGlobal = [];
 
 function renderMiembrosTable(filtro = "") {
     const tbody = document.getElementById("tablaMiembrosBody");
     if (!tbody) return;
+
+    // Escuchar cambios en Firestore en tiempo real
+    db.collection("miembros").onSnapshot((snapshot) => {
+        listaMiembrosGlobal = [];
+        snapshot.forEach(doc => {
+            listaMiembrosGlobal.push({ id: doc.id, ...doc.data() });
+        });
+
+        dibujarTablaMiembros(filtro);
+        actualizarSelectDesignaciones();
+    }, (error) => {
+        console.error("Error consultando miembros: ", error);
+    });
+}
+
+function dibujarTablaMiembros(filtro = "") {
+    const tbody = document.getElementById("tablaMiembrosBody");
+    if (!tbody) return;
     
     tbody.innerHTML = "";
-    const miembros = getMiembros();
-    
-    const filtrados = miembros.filter(m => 
+
+    const filtrados = listaMiembrosGlobal.filter(m => 
         m.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
         m.apellido.toLowerCase().includes(filtro.toLowerCase()) ||
         m.cedula.includes(filtro)
     );
 
-    if(filtrados.length === 0) {
+    if (filtrados.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No hay registros coincidentes</td></tr>`;
         return;
     }
@@ -125,41 +134,38 @@ function renderMiembrosTable(filtro = "") {
     });
 }
 
-function guardarMiembroForm(e) {
+async function guardarMiembroForm(e) {
     e.preventDefault();
     const nombre = document.getElementById("mNombre").value.trim();
     const apellido = document.getElementById("mApellido").value.trim();
-    
-    // Si no se introduce dato, asigna "S/D" por defecto
     const cedula = document.getElementById("mCedula").value.trim() || "S/D";
     const telefono = document.getElementById("mTelefono").value.trim() || "S/D";
     const correo = document.getElementById("mCorreo").value.trim() || "S/D";
 
-    let miembros = getMiembros();
-
-    if (miembroEditandoId) {
-        miembros = miembros.map(m => m.id === miembroEditandoId ? { id: m.id, nombre, apellido, cedula, telefono, correo } : m);
-        miembroEditandoId = null;
-        document.getElementById("btnSubmitMiembro").textContent = "Registrar Miembro";
-    } else {
-        // Validar duplicado únicamente si introdujo una cédula válida diferente de S/D
-        if(cedula !== "S/D" && miembros.some(m => m.cedula === cedula)) {
-            alert("Esta cédula ya está registrada.");
-            return;
+    try {
+        if (miembroEditandoId) {
+            await db.collection("miembros").doc(miembroEditandoId).update({
+                nombre, apellido, cedula, telefono, correo
+            });
+            miembroEditandoId = null;
+            document.getElementById("btnSubmitMiembro").textContent = "Registrar Miembro";
+        } else {
+            if (cedula !== "S/D" && listaMiembrosGlobal.some(m => m.cedula === cedula)) {
+                alert("Esta cédula ya está registrada.");
+                return;
+            }
+            await db.collection("miembros").add({
+                nombre, apellido, cedula, telefono, correo, fechaRegistro: new Date()
+            });
         }
-        const nuevo = { id: 'm_' + Date.now(), nombre, apellido, cedula, telefono, correo };
-        miembros.push(nuevo);
+        document.getElementById("miembroForm").reset();
+    } catch (error) {
+        alert("Error al guardar en la nube: " + error.message);
     }
-
-    saveMiembros(miembros);
-    document.getElementById("miembroForm").reset();
-    renderMiembrosTable();
-    actualizarSelectDesignaciones();
 }
 
 function prepararEdicion(id) {
-    const miembros = getMiembros();
-    const m = miembros.find(item => item.id === id);
+    const m = listaMiembrosGlobal.find(item => item.id === id);
     if (!m) return;
 
     document.getElementById("mNombre").value = m.nombre;
@@ -172,42 +178,58 @@ function prepararEdicion(id) {
     document.getElementById("btnSubmitMiembro").textContent = "Actualizar Datos";
 }
 
-function eliminarMiembro(id) {
+async function eliminarMiembro(id) {
     if (!confirm("¿Seguro que deseas eliminar este miembro? Se quitará de cualquier cargo asignado.")) return;
-    
-    let miembros = getMiembros();
-    miembros = miembros.filter(m => m.id !== id);
-    saveMiembros(miembros);
 
-    let estructuras = getEstructuras();
-    ['municipal', 'los_taques', 'judibana'].forEach(amb => {
-        for (let cargo in estructuras[amb]) {
-            if (estructuras[amb][cargo] === id) {
-                delete estructuras[amb][cargo];
+    try {
+        await db.collection("miembros").doc(id).delete();
+        
+        // Limpiar de estructuras si estaba asignado
+        const ambitos = ['municipal', 'los_taques', 'judibana'];
+        for (let amb of ambitos) {
+            const docRef = db.collection("estructuras").doc(amb);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                const data = doc.data();
+                let actualizo = false;
+                for (let cargo in data) {
+                    if (data[cargo] === id) {
+                        delete data[cargo];
+                        actualizo = true;
+                    }
+                }
+                if (actualizo) await docRef.set(data);
             }
         }
-    });
-    
-    saveEstructuras(estructuras);
-    renderMiembrosTable();
+    } catch (error) {
+        alert("Error al eliminar: " + error.message);
+    }
 }
 
-// --- LOGICA DE ESTRUCTURAS ---
+// --- LOGICA DE ESTRUCTURAS EN TIEMPO REAL ---
 let ambitoActual = "";
 let cargoSeleccionado = "";
+let dataEstructuraActual = {};
 
 function initEstructuraPage(ambito) {
     ambitoActual = ambito;
-    renderEstructuraTable();
+    
+    // Cargar miembros primero y escuchar estructura en tiempo real
+    db.collection("miembros").onSnapshot(() => {
+        escucharEstructura();
+    });
+}
+
+function escucharEstructura() {
+    db.collection("estructuras").doc(ambitoActual).onSnapshot((doc) => {
+        dataEstructuraActual = doc.exists ? doc.data() : {};
+        renderEstructuraTable();
+    });
 }
 
 function renderEstructuraTable() {
     const tabla = document.getElementById("tablaEstructuraBody");
     if (!tabla) return;
-
-    const estructuras = getEstructuras();
-    const miembros = getMiembros();
-    const dataAmbito = estructuras[ambitoActual] || {};
 
     const cargosDisponibles = [
         "Coordinación",
@@ -223,8 +245,8 @@ function renderEstructuraTable() {
         const sufijo = ambitoActual === 'municipal' ? 'Municipal' : 'Parroquial';
         const nombreCargoCompleto = c === "Coordinación" ? `${c} ${sufijo}` : `${c}`;
 
-        const miembroId = dataAmbito[nombreCargoCompleto];
-        const m = miembros.find(item => item.id === miembroId);
+        const miembroId = dataEstructuraActual[nombreCargoCompleto];
+        const m = listaMiembrosGlobal.find(item => item.id === miembroId);
 
         const tr = document.createElement("tr");
         if (m) {
@@ -267,9 +289,8 @@ function actualizarSelectDesignaciones() {
     const select = document.getElementById("selectMiembroDesignar");
     if (!select) return;
     select.innerHTML = '<option value="">-- Selecciona un miembro militante --</option>';
-    
-    const miembros = getMiembros();
-    miembros.forEach(m => {
+
+    listaMiembrosGlobal.forEach(m => {
         const opt = document.createElement("option");
         opt.value = m.id;
         opt.textContent = `${m.nombre} ${m.apellido} (${m.cedula})`;
@@ -277,26 +298,33 @@ function actualizarSelectDesignaciones() {
     });
 }
 
-function procesarDesignacion() {
+async function procesarDesignacion() {
     const select = document.getElementById("selectMiembroDesignar");
     const idMiembro = select.value;
-    if(!idMiembro) {
+    if (!idMiembro) {
         alert("Por favor selecciona un miembro.");
         return;
     }
 
-    let estructuras = getEstructuras();
-    estructuras[ambitoActual][cargoSeleccionado] = idMiembro;
-    saveEstructuras(estructuras);
-    
-    cerrarModal();
-    renderEstructuraTable();
+    try {
+        await db.collection("estructuras").doc(ambitoActual).set({
+            [cargoSeleccionado]: idMiembro
+        }, { merge: true });
+        
+        cerrarModal();
+    } catch (error) {
+        alert("Error al designar cargo: " + error.message);
+    }
 }
 
-function removerCargo(cargo) {
-    if(!confirm(`¿Deseas dejar vacante el cargo: ${cargo}?`)) return;
-    let estructuras = getEstructuras();
-    delete estructuras[ambitoActual][cargo];
-    saveEstructuras(estructuras);
-    renderEstructuraTable();
-        }
+async function removerCargo(cargo) {
+    if (!confirm(`¿Deseas dejar vacante el cargo: ${cargo}?`)) return;
+
+    try {
+        await db.collection("estructuras").doc(ambitoActual).update({
+            [cargo]: firebase.firestore.FieldValue.delete()
+        });
+    } catch (error) {
+        alert("Error al vaciar cargo: " + error.message);
+    }
+}
