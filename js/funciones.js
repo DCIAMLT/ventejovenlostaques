@@ -206,7 +206,7 @@ async function eliminarMiembro(id) {
     }
 }
 
-// --- LOGICA DE ESTRUCTURAS EN TIEMPO REAL ---
+// --- LÓGICA DE ESTRUCTURAS EN TIEMPO REAL ---
 let ambitoActual = "";
 let cargoSeleccionado = "";
 let dataEstructuraActual = {};
@@ -214,16 +214,28 @@ let dataEstructuraActual = {};
 function initEstructuraPage(ambito) {
     ambitoActual = ambito;
     
-    // Cargar miembros primero y escuchar estructura en tiempo real
-    db.collection("miembros").onSnapshot(() => {
-        escucharEstructura();
-    });
-}
+    // 1. Escuchar cambios de miembros en tiempo real
+    db.collection("miembros").onSnapshot((snapshot) => {
+        listaMiembrosGlobal = [];
+        snapshot.forEach(doc => {
+            listaMiembrosGlobal.push({ id: doc.id, ...doc.data() });
+        });
 
-function escucharEstructura() {
+        actualizarSelectDesignaciones();
+        
+        if (Object.keys(dataEstructuraActual).length > 0) {
+            renderEstructuraTable();
+        }
+    }, (error) => {
+        console.error("Error cargando miembros para estructuras: ", error);
+    });
+
+    // 2. Escuchar la estructura en tiempo real
     db.collection("estructuras").doc(ambitoActual).onSnapshot((doc) => {
         dataEstructuraActual = doc.exists ? doc.data() : {};
         renderEstructuraTable();
+    }, (error) => {
+        console.error("Error cargando la estructura: ", error);
     });
 }
 
