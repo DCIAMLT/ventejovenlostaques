@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Vente Joven Los Taques</title>
-    <!-- Favicon para la pestaña -->
     <link rel="icon" type="image/png" href="img/ventejlostaquesicon.png">
     <link rel="stylesheet" href="css/estilos.css">
 </head>
@@ -12,23 +11,26 @@
     <div class="login-overlay"></div>
     
     <div class="login-container">
-        <!-- Logo de la organización -->
         <img src="img/ventejlostaques.png" alt="Logo Vente Joven">
         <h2>Control Interno Municipal</h2>
         
         <div class="form-group">
-            <label for="cedulaInput">Codigo Único de Acceso</label>
-            <input type="text" id="cedulaInput" class="form-control" placeholder="Ingrese el Código Único de Acceso" onkeypress="if(event.key === 'Enter') login()">
+            <label for="emailInput">Correo Electrónico</label>
+            <input type="email" id="emailInput" class="form-control" placeholder="usuario@ventejoven.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="passwordInput">Contraseña</label>
+            <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" onkeypress="if(event.key === 'Enter') login()" required>
         </div>
         
-        <button class="btn-login" onclick="login()">Ingresar</button>
+        <button class="btn-login" onclick="login()">Ingresar al Sistema</button>
     </div>
+
+    <!-- Librerías de Firebase SDK v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/funciones.js"></script>
-    <script>
-        // Prevenir entrada si ya está logueado
-        verificarSesion(true);
-    </script>
 </body>
 </html>
