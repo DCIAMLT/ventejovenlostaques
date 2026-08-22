@@ -6,6 +6,8 @@
     <title>Login - Vente Joven Los Taques</title>
     <link rel="icon" type="image/png" href="img/ventejlostaquesicon.png">
     <link rel="stylesheet" href="css/estilos.css">
+    <!-- Google reCAPTCHA v2 API -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="body-login">
     <div class="login-overlay"></div>
@@ -24,10 +26,15 @@
             <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" onkeypress="if(event.key === 'Enter') login()" required>
         </div>
         
+        <!-- Casilla Google reCAPTCHA v2 (Reemplaza TU_CLAVE_DEL_SITIO por tu sitekey real) -->
+        <div class="form-group" style="display: flex; justify-content: center; margin: 1rem 0;">
+            <div class="g-recaptcha" data-sitekey="TU_CLAVE_DEL_SITIO"></div>
+        </div>
+
         <button class="btn-login" onclick="login()">Ingresar al Sistema</button>
     </div>
 
-    <!-- Librerías de Firebase SDK v8 -->
+    <!-- SDKs de Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
