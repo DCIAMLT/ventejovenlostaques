@@ -24,10 +24,12 @@ let cargoSeleccionado = "";
 // --- LOGIN CON FIREBASE Y RECAPTCHA ---
 async function login() {
     // 1. Validar si reCAPTCHA está resuelto
-    const captchaResponse = grecaptcha.getResponse();
-    if (captchaResponse.length === 0) {
-        alert("Por favor, marca la casilla 'No soy un robot' para continuar.");
-        return;
+    if (typeof grecaptcha !== 'undefined') {
+        const captchaResponse = grecaptcha.getResponse();
+        if (captchaResponse.length === 0) {
+            alert("Por favor, marca la casilla 'No soy un robot' para continuar.");
+            return;
+        }
     }
 
     const email = document.getElementById("emailInput").value.trim();
@@ -41,35 +43,43 @@ async function login() {
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         await obtenerRolUsuario(userCredential.user.uid);
-        window.location.href = "inicio/index.html";
+        
+        // Redirección dinámica según la ubicación actual
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        window.location.href = basePath + "/inicio/index.html";
     } catch (error) {
         alert("Acceso denegado: Credenciales incorrectas.");
-        grecaptcha.reset(); // Reiniciar reCAPTCHA en caso de fallo
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        }
     }
 }
 
-// LOGOUT
+// --- LOGOUT SEGURO ---
 function logout() {
     auth.signOut().then(() => {
-        const pathDepth = window.location.pathname.split('/').length;
-        window.location.href = pathDepth > 3 ? "../index.html" : "../index.html";
+        const path = window.location.pathname;
+        const repositoryPath = path.substring(0, path.indexOf('/', 1));
+        window.location.href = repositoryPath + "/index.html";
     });
 }
 
-// VERIFICADOR DE SESIÓN EN TIEMPO REAL
+// --- VERIFICADOR DE SESIÓN EN TIEMPO REAL (RUTAS CORREGIDAS) ---
 auth.onAuthStateChanged(async (user) => {
     const path = window.location.pathname;
-    const isLoginPage = path.endsWith("index.html") && !path.includes("inicio") && !path.includes("miembros");
+    const isLoginPage = path.endsWith("index.html") && !path.includes("/inicio/") && !path.includes("/miembros/");
 
     if (user) {
         await obtenerRolUsuario(user.uid);
         if (isLoginPage) {
-            window.location.href = "inicio/index.html";
+            const basePath = path.substring(0, path.lastIndexOf('/'));
+            window.location.href = basePath + "/inicio/index.html";
         }
     } else {
         if (!isLoginPage) {
-            const pathDepth = path.split('/').length;
-            window.location.href = pathDepth > 3 ? "../index.html" : "../index.html";
+            const repositoryPath = path.substring(0, path.indexOf('/', 1));
+            window.location.href = repositoryPath + "/index.html";
         }
     }
 });
@@ -109,7 +119,9 @@ function renderMiembrosTable(filtro = "") {
         });
 
         dibujarTablaMiembros(filtro);
-        actualizarSelectDesignaciones();
+        if (typeof actualizarSelectDesignaciones === 'function') {
+            actualizarSelectDesignaciones();
+        }
     });
 }
 
@@ -139,11 +151,11 @@ function dibujarTablaMiembros(filtro = "") {
         ` : `<td><span style="color:#aaa; font-size:0.8rem;">Solo Lectura</span></td>`;
 
         tr.innerHTML = `
-            <td>${m.nombre}</td>
-            <td>${m.apellido}</td>
-            <td>${m.cedula}</td>
-            <td>${m.telefono}</td>
-            <td>${m.correo}</td>
+            <td>${m.nombre || ''}</td>
+            <td>${m.apellido || ''}</td>
+            <td>${m.cedula || ''}</td>
+            <td>${m.telefono || ''}</td>
+            <td>${m.correo || ''}</td>
             ${acciones}
         `;
         tbody.appendChild(tr);
@@ -159,7 +171,9 @@ function initEstructuraPage(ambito) {
         snapshot.forEach(doc => {
             listaMiembrosGlobal.push({ id: doc.id, ...doc.data() });
         });
-        actualizarSelectDesignaciones();
+        if (typeof actualizarSelectDesignaciones === 'function') {
+            actualizarSelectDesignaciones();
+        }
         if (Object.keys(dataEstructuraActual).length > 0) renderEstructuraTable();
     });
 
@@ -210,11 +224,11 @@ function renderEstructuraTable() {
         if (m) {
             tr.innerHTML = `
                 <td><b>${nombreCargoCompleto}</b></td>
-                <td>${m.nombre}</td>
-                <td>${m.apellido}</td>
-                <td>${m.cedula}</td>
-                <td>${m.correo}</td>
-                <td>${m.telefono}</td>
+                <td>${m.nombre || ''}</td>
+                <td>${m.apellido || ''}</td>
+                <td>${m.cedula || ''}</td>
+                <td>${m.correo || ''}</td>
+                <td>${m.telefono || ''}</td>
                 ${celdaAccion}
             `;
         } else {
