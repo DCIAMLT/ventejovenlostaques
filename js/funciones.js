@@ -1,11 +1,80 @@
-// VARIABLES GLOBALES DE ESTADO
-let miRolActual = "lector"; // Valor por defecto
+// CONFIGURACIÓN DE FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyCNs1ZDsZ-lJayR2aXjkoASEMVXz4GiAXs",
+  authDomain: "ventejovenlostaques.firebaseapp.com",
+  projectId: "ventejovenlostaques",
+  storageBucket: "ventejovenlostaques.firebasestorage.app",
+  messagingSenderId: "314944402934",
+  appId: "1:314944402934:web:32558ad1028e504e4683d7"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// VARIABLES GLOBALES
+let miRolActual = "lector";
 let listaMiembrosGlobal = [];
 let dataEstructuraActual = {};
 let ambitoActual = "";
 let cargoSeleccionado = "";
 
-// --- 1. VERIFICAR ROL DE USUARIO ---
+// --- LOGIN CON FIREBASE Y RECAPTCHA ---
+async function login() {
+    // 1. Validar si reCAPTCHA está resuelto
+    const captchaResponse = grecaptcha.getResponse();
+    if (captchaResponse.length === 0) {
+        alert("Por favor, marca la casilla 'No soy un robot' para continuar.");
+        return;
+    }
+
+    const email = document.getElementById("emailInput").value.trim();
+    const password = document.getElementById("passwordInput").value.trim();
+
+    if (!email || !password) {
+        alert("Por favor, completa todos los campos.");
+        return;
+    }
+
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        await obtenerRolUsuario(userCredential.user.uid);
+        window.location.href = "inicio/index.html";
+    } catch (error) {
+        alert("Acceso denegado: Credenciales incorrectas.");
+        grecaptcha.reset(); // Reiniciar reCAPTCHA en caso de fallo
+    }
+}
+
+// LOGOUT
+function logout() {
+    auth.signOut().then(() => {
+        const pathDepth = window.location.pathname.split('/').length;
+        window.location.href = pathDepth > 3 ? "../index.html" : "../index.html";
+    });
+}
+
+// VERIFICADOR DE SESIÓN EN TIEMPO REAL
+auth.onAuthStateChanged(async (user) => {
+    const path = window.location.pathname;
+    const isLoginPage = path.endsWith("index.html") && !path.includes("inicio") && !path.includes("miembros");
+
+    if (user) {
+        await obtenerRolUsuario(user.uid);
+        if (isLoginPage) {
+            window.location.href = "inicio/index.html";
+        }
+    } else {
+        if (!isLoginPage) {
+            const pathDepth = path.split('/').length;
+            window.location.href = pathDepth > 3 ? "../index.html" : "../index.html";
+        }
+    }
+});
+
+// --- ROL DE USUARIO ---
 async function obtenerRolUsuario(uid) {
     try {
         const userDoc = await db.collection("usuarios").doc(uid).get();
@@ -15,13 +84,12 @@ async function obtenerRolUsuario(uid) {
             miRolActual = "lector";
         }
     } catch (error) {
-        console.error("Error al obtener el rol del usuario:", error);
+        console.error("Error obteniendo rol:", error);
         miRolActual = "lector";
     }
     aplicarPermisosUI();
 }
 
-// Ocultar o mostrar botones según el rol asignado
 function aplicarPermisosUI() {
     const elementosAdmin = document.querySelectorAll(".admin-only");
     elementosAdmin.forEach(el => {
@@ -29,7 +97,7 @@ function aplicarPermisosUI() {
     });
 }
 
-// --- 2. GESTIÓN DE MIEMBROS EN TIEMPO REAL ---
+// --- GESTIÓN DE MIEMBROS ---
 function renderMiembrosTable(filtro = "") {
     const tbody = document.getElementById("tablaMiembrosBody");
     if (!tbody) return;
@@ -42,8 +110,6 @@ function renderMiembrosTable(filtro = "") {
 
         dibujarTablaMiembros(filtro);
         actualizarSelectDesignaciones();
-    }, (error) => {
-        console.error("Error al consultar miembros:", error);
     });
 }
 
@@ -84,11 +150,10 @@ function dibujarTablaMiembros(filtro = "") {
     });
 }
 
-// --- 3. LÓGICA DE ESTRUCTURAS EN TIEMPO REAL ---
+// --- ESTRUCTURAS ---
 function initEstructuraPage(ambito) {
     ambitoActual = ambito;
     
-    // Escuchar miembros
     db.collection("miembros").onSnapshot((snapshot) => {
         listaMiembrosGlobal = [];
         snapshot.forEach(doc => {
@@ -98,7 +163,6 @@ function initEstructuraPage(ambito) {
         if (Object.keys(dataEstructuraActual).length > 0) renderEstructuraTable();
     });
 
-    // Escuchar la estructura del ámbito actual
     db.collection("estructuras").doc(ambitoActual).onSnapshot((doc) => {
         dataEstructuraActual = doc.exists ? doc.data() : {};
         renderEstructuraTable();
