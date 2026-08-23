@@ -16,18 +16,23 @@
         <div class="user-badge" id="userRoleBadge">Cargando...</div>
     </header>
 
+    <!-- FONDO DE SUPERPOSICIÓN PARA CERRAR EL MENÚ -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- MENÚ LATERAL -->
     <div class="sidebar" id="sidebar">
         <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
         <ul class="sidebar-menu">
             <li><a href="../inicio/index.html" class="active">🏠 Inicio</a></li>
             <li><a href="../miembros/index.html">👥 Miembros</a></li>
-            <li><a href="../estructuras/municipal.html">🏛️ Estructura Municipal</a></li>
+            <li><a href="../estructuramunicipal/index.html">🏛️ Estructura Municipal</a></li>
             <li><a href="../estructuras/los_taques.html">📍 Parroquial Los Taques</a></li>
             <li><a href="../estructuras/judibana.html">📍 Parroquial Judibana</a></li>
             <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
         </ul>
     </div>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main id="areaExportar">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h2>Resumen General del Municipio</h2>
@@ -54,6 +59,7 @@
         </div>
     </main>
 
+    <!-- SDKs DE FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
