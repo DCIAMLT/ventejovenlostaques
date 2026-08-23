@@ -8,8 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         .tabs { display: flex; gap: 10px; margin-bottom: 1.5rem; }
-        .tab-btn { padding: 0.7rem 1.5rem; border: none; background: #e0e0e0; cursor: pointer; border-radius: 8px; font-weight: 600; }
-        .tab-btn.active { background: var(--azul-principal); color: white; }
+        .tab-btn { padding: 0.7rem 1.5rem; border: none; background: #e0e0e0; cursor: pointer; border-radius: 8px; font-weight: 600; transition: background 0.3s ease; }
+        .tab-btn.active { background: var(--azul-principal, #0056b3); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
@@ -28,23 +28,23 @@
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- MENÚ LATERAL -->
-    <!-- OPCIÓN RECOMENDADA (Limpia y sin fallas) -->
-<div class="sidebar" id="sidebar">
-    <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
-    <ul class="sidebar-menu">
-        <li><a href="../inicio/">🏠 Inicio</a></li>
-        <li><a href="../miembros/">👥 Miembros</a></li>
-        <li><a href="../estructuramunicipal/">🏛️ Estructura Municipal</a></li>
-        <li><a href="../parroquialostaques/">📍 Parroquial Los Taques</a></li>
-        <li><a href="../parroquiajudibana/">📍 Parroquial Judibana</a></li>
-        <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
-    </ul>
-</div>
+    <div class="sidebar" id="sidebar">
+        <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
+        <ul class="sidebar-menu">
+            <li><a href="../inicio/">🏠 Inicio</a></li>
+            <li><a href="../miembros/" class="active">👥 Miembros</a></li>
+            <li><a href="../estructuramunicipal/">🏛️ Estructura Municipal</a></li>
+            <li><a href="../parroquialostaques/">📍 Parroquial Los Taques</a></li>
+            <li><a href="../parroquiajudibana/">📍 Parroquial Judibana</a></li>
+            <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </div>
 
     <main>
+        <!-- BOTONES DE PESTAÑAS (AMBOS VISIBLES PARA TODOS) -->
         <div class="tabs">
             <button class="tab-btn active" id="listTabBtn" onclick="switchTab('listaTab')">📋 Lista de Miembros</button>
-            <button class="tab-btn admin-only" id="formTabBtn" onclick="switchTab('formTab')">➕ Agregar / Editar Miembro</button>
+            <button class="tab-btn" id="formTabBtn" onclick="switchTab('formTab')">➕ Agregar / Editar Miembro</button>
         </div>
 
         <!-- PESTAÑA 1: TABLA DE MIEMBROS -->
@@ -83,11 +83,11 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nombre *</label>
-                        <input type="text" id="nombreInput" class="form-control" required>
+                        <input type="text" id="nombreInput" class="form-control" required placeholder="Ej: Diego">
                     </div>
                     <div class="form-group">
                         <label>Apellido *</label>
-                        <input type="text" id="apellidoInput" class="form-control" required>
+                        <input type="text" id="apellidoInput" class="form-control" required placeholder="Ej: García">
                     </div>
                     <div class="form-group">
                         <label>Cédula (Opcional)</label>
@@ -125,7 +125,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'formTab') {
+            if (tabId === 'formTab') {
                 document.getElementById('formTabBtn').classList.add('active');
             } else {
                 document.getElementById('listTabBtn').classList.add('active');
