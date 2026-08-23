@@ -241,3 +241,41 @@ function renderEstructuraTable() {
         tabla.appendChild(tr);
     });
 }
+// --- FUNCIONES INTERFAZ Y NAVEGACIÓN ---
+
+// Abre y cierra el menú lateral de 3 rayas
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) {
+        sidebar.classList.toggle("active");
+    }
+}
+
+// Cierra el menú si se hace clic fuera de él
+document.addEventListener("click", (e) => {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.querySelector(".menu-toggle");
+    if (sidebar && sidebar.classList.contains("active")) {
+        if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
+            sidebar.classList.remove("active");
+        }
+    }
+});
+
+// Formatea e inyecta la fecha/hora de última actualización
+function actualizarTimestampUI() {
+    const el = document.getElementById("timestampActualizacion");
+    if (!el) return;
+    
+    const ahora = new Date();
+    const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const fecha = ahora.toLocaleDateString('es-ES', opcionesFecha);
+    const hora = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    
+    el.innerText = `Última actualización: ${fecha} - ${hora}`;
+}
+
+// Inicializar componentes al cargar
+document.addEventListener("DOMContentLoaded", () => {
+    actualizarTimestampUI();
+});
