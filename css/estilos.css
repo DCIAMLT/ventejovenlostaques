@@ -22,8 +22,81 @@ body {
     background-color: var(--gris-fondo);
     color: var(--texto-oscuro);
     min-height: 100vh;
+}
+
+/* ESTILOS DE LOGIN */
+.body-login {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--azul-oscuro), #004d40);
+    padding: 1.5rem;
+}
+
+.login-container {
+    background: var(--blanco);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-container img {
+    max-width: 180px;
+    height: auto;
+    margin-bottom: 1.5rem;
+}
+
+.login-container h2 {
+    font-size: 1.3rem;
+    color: var(--texto-oscuro);
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: var(--texto-oscuro);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--azul-principal);
+}
+
+.btn-login {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: var(--azul-principal);
+    color: var(--blanco);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-login:hover {
+    background-color: var(--azul-oscuro);
 }
 
 /* HEADER Y NAVEGACIÓN */
@@ -38,9 +111,11 @@ header {
 }
 
 .menu-toggle {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     cursor: pointer;
     color: var(--azul-oscuro);
+    user-select: none;
+    padding: 0 5px;
 }
 
 .user-badge {
@@ -52,7 +127,7 @@ header {
     font-weight: 600;
 }
 
-/* SIDEBAR */
+/* SIDEBAR CORREGIDO */
 .sidebar {
     position: fixed;
     top: 0;
@@ -60,13 +135,15 @@ header {
     width: 280px;
     height: 100%;
     background-color: var(--blanco);
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-    z-index: 100;
-    transition: 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+    z-index: 999;
+    transition: left 0.3s ease;
     padding-top: 3.5rem;
 }
 
-.sidebar.active { left: 0; }
+.sidebar.active {
+    left: 0 !important;
+}
 
 .close-sidebar {
     position: absolute;
@@ -74,9 +151,13 @@ header {
     right: 1rem;
     font-size: 1.4rem;
     cursor: pointer;
+    color: var(--texto-suave);
 }
 
-.sidebar-menu { list-style: none; }
+.sidebar-menu {
+    list-style: none;
+}
+
 .sidebar-menu li a {
     display: block;
     padding: 0.9rem 1.5rem;
@@ -86,17 +167,15 @@ header {
     transition: 0.2s;
 }
 
-.sidebar-menu li a:hover {
+.sidebar-menu li a:hover, .sidebar-menu li a.active {
     background-color: var(--azul-fondo);
     color: var(--azul-oscuro);
 }
 
 /* TARJETAS Y CONTENEDORES */
 main {
-    flex: 1;
     padding: 1.5rem;
     max-width: 1200px;
-    width: 100%;
     margin: 0 auto;
 }
 
@@ -109,16 +188,7 @@ main {
     margin-bottom: 1.5rem;
 }
 
-.page-title {
-    font-size: 1.5rem;
-    color: var(--azul-oscuro);
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* TABLAS Y ACCIONES */
+/* TABLAS */
 .table-responsive {
     overflow-x: auto;
     border-radius: 8px;
@@ -149,35 +219,39 @@ td {
     font-style: italic;
 }
 
-/* FORMULARIOS Y BOTONES */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.7rem;
-    border: 1px solid var(--borde);
-    border-radius: 6px;
-    outline: none;
-}
-
-.form-control:focus { border-color: var(--azul-principal); }
-
+/* BOTONES GENERALES */
 .btn-primary {
     background-color: var(--azul-principal);
     color: var(--blanco);
     border: none;
-    padding: 0.7rem 1.2rem;
+    padding: 0.6rem 1.2rem;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
 }
 
-.btn-primary:hover { background-color: var(--azul-oscuro); }
+.btn-primary:hover {
+    background-color: var(--azul-oscuro);
+}
 
-/* OCULTAR ELEMENTOS POR ROL */
-.admin-only { display: none; }
+.btn-delete {
+    background-color: var(--rojo);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: var(--azul-principal);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-only {
+    display: none;
+}
