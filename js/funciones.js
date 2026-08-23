@@ -23,7 +23,6 @@ let cargoSeleccionado = "";
 
 // --- LOGIN CON FIREBASE Y RECAPTCHA ---
 async function login() {
-    // 1. Validar si reCAPTCHA está resuelto
     if (typeof grecaptcha !== 'undefined') {
         const captchaResponse = grecaptcha.getResponse();
         if (captchaResponse.length === 0) {
@@ -44,7 +43,6 @@ async function login() {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         await obtenerRolUsuario(userCredential.user.uid);
         
-        // Redirección dinámica según la ubicación actual
         const currentPath = window.location.pathname;
         const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
         window.location.href = basePath + "/inicio/index.html";
@@ -65,10 +63,10 @@ function logout() {
     });
 }
 
-// --- VERIFICADOR DE SESIÓN EN TIEMPO REAL (RUTAS CORREGIDAS) ---
+// --- VERIFICADOR DE SESIÓN EN TIEMPO REAL ---
 auth.onAuthStateChanged(async (user) => {
     const path = window.location.pathname;
-    const isLoginPage = path.endsWith("index.html") && !path.includes("/inicio/") && !path.includes("/miembros/");
+    const isLoginPage = path.endsWith("index.html") && !path.includes("/inicio/") && !path.includes("/miembros/") && !path.includes("/estructura");
 
     if (user) {
         await obtenerRolUsuario(user.uid);
@@ -88,15 +86,17 @@ auth.onAuthStateChanged(async (user) => {
 async function obtenerRolUsuario(uid) {
     try {
         const userDoc = await db.collection("usuarios").doc(uid).get();
-        if (userDoc.exists) {
-            miRolActual = userDoc.data().rol || "lector";
-        } else {
-            miRolActual = "lector";
-        }
+        miRolActual = userDoc.exists ? (userDoc.data().rol || "lector") : "lector";
     } catch (error) {
         console.error("Error obteniendo rol:", error);
         miRolActual = "lector";
     }
+    
+    const badge = document.getElementById("userRoleBadge");
+    if (badge) {
+        badge.innerText = miRolActual === "admin" ? "Administrador" : "Lector";
+    }
+    
     aplicarPermisosUI();
 }
 
@@ -107,32 +107,57 @@ function aplicarPermisosUI() {
     });
 }
 
-// --- GESTIÓN DE MIEMBROS ---
-function renderMiembrosTable(filtro = "") {
-    const tbody = document.getElementById("tablaMiembrosBody");
-    if (!tbody) return;
+// --- PANEL PRINCIPAL (RESUMEN) ---
+function initDashboard() {
+    db.collection("miembros").onSnapshot((snapshotMiembros) => {
+        const totalMiembros = snapshotMiembros.size;
+        const statTotal = document.getElementById("statTotalMiembros");
+        if (statTotal) statTotal.innerText = totalMiembros;
 
+        db.collection("estructuras").onSnapshot((snapshotEstructuras) => {
+            let cargosOcupados = 0;
+            let personasUnicasConCargo = new Set();
+
+            snapshotEstructuras.forEach(doc => {
+                const data = doc.data();
+                Object.values(data).forEach(miembroId => {
+                    if (miembroId) {
+                        cargosOcupados++;
+                        personasUnicasConCargo.add(miembroId);
+                    }
+                });
+            });
+
+            const statCargos = document.getElementById("statCargosOcupados");
+            const statPersonas = document.getElementById("statPersonasConCargo");
+
+            if (statCargos) statCargos.innerText = `${cargosOcupados} / 15`;
+            if (statPersonas) statPersonas.innerText = personasUnicasConCargo.size;
+        });
+    });
+}
+
+// --- GESTIÓN DE MIEMBROS ---
+function renderMiembrosTable() {
     db.collection("miembros").onSnapshot((snapshot) => {
         listaMiembrosGlobal = [];
         snapshot.forEach(doc => {
             listaMiembrosGlobal.push({ id: doc.id, ...doc.data() });
         });
-
-        dibujarTablaMiembros(filtro);
-        if (typeof actualizarSelectDesignaciones === 'function') {
-            actualizarSelectDesignaciones();
-        }
+        dibujarTablaMiembros();
     });
 }
 
-function dibujarTablaMiembros(filtro = "") {
+function dibujarTablaMiembros() {
     const tbody = document.getElementById("tablaMiembrosBody");
     if (!tbody) return;
+    
+    const filtro = document.getElementById("searchMiembro") ? document.getElementById("searchMiembro").value.toLowerCase() : "";
     tbody.innerHTML = "";
 
     const filtrados = listaMiembrosGlobal.filter(m => 
-        (m.nombre && m.nombre.toLowerCase().includes(filtro.toLowerCase())) ||
-        (m.apellido && m.apellido.toLowerCase().includes(filtro.toLowerCase())) ||
+        (m.nombre && m.nombre.toLowerCase().includes(filtro)) ||
+        (m.apellido && m.apellido.toLowerCase().includes(filtro)) ||
         (m.cedula && m.cedula.includes(filtro))
     );
 
@@ -153,13 +178,80 @@ function dibujarTablaMiembros(filtro = "") {
         tr.innerHTML = `
             <td>${m.nombre || ''}</td>
             <td>${m.apellido || ''}</td>
-            <td>${m.cedula || ''}</td>
-            <td>${m.telefono || ''}</td>
-            <td>${m.correo || ''}</td>
+            <td>${m.cedula || 'N/A'}</td>
+            <td>${m.telefono || 'N/A'}</td>
+            <td>${m.correo || 'N/A'}</td>
             ${acciones}
         `;
         tbody.appendChild(tr);
     });
+}
+
+function filtrarMiembros() {
+    dibujarTablaMiembros();
+}
+
+async function guardarMiembro(e) {
+    e.preventDefault();
+    const id = document.getElementById("miembroIdEdit").value;
+    const nombre = document.getElementById("nombreInput").value.trim();
+    const apellido = document.getElementById("apellidoInput").value.trim();
+    const cedula = document.getElementById("cedulaInput").value.trim();
+    const telefono = document.getElementById("telefonoInput").value.trim();
+    const correo = document.getElementById("correoInput").value.trim();
+
+    if (!nombre || !apellido) {
+        alert("El nombre y el apellido son obligatorios.");
+        return;
+    }
+
+    const payload = { nombre, apellido, cedula, telefono, correo };
+
+    try {
+        if (id) {
+            await db.collection("miembros").doc(id).update(payload);
+            alert("Miembro actualizado correctamente.");
+        } else {
+            await db.collection("miembros").add(payload);
+            alert("Miembro agregado con éxito.");
+        }
+
+        document.getElementById("miembroForm").reset();
+        document.getElementById("miembroIdEdit").value = "";
+        document.getElementById("btnGuardarMiembro").innerText = "Guardar Miembro";
+        document.getElementById("formTitle").innerText = "Agregar Nuevo Miembro";
+        
+        if (typeof switchTab === 'function') switchTab('listaTab');
+    } catch (error) {
+        alert("Error al guardar: " + error.message);
+    }
+}
+
+function prepararEdicion(id) {
+    const m = listaMiembrosGlobal.find(item => item.id === id);
+    if (!m) return;
+
+    document.getElementById("miembroIdEdit").value = m.id;
+    document.getElementById("nombreInput").value = m.nombre || "";
+    document.getElementById("apellidoInput").value = m.apellido || "";
+    document.getElementById("cedulaInput").value = m.cedula || "";
+    document.getElementById("telefonoInput").value = m.telefono || "";
+    document.getElementById("correoInput").value = m.correo || "";
+
+    document.getElementById("btnGuardarMiembro").innerText = "Actualizar Datos";
+    document.getElementById("formTitle").innerText = "Editar Datos del Miembro";
+
+    if (typeof switchTab === 'function') switchTab('formTab');
+}
+
+async function eliminarMiembro(id) {
+    if (confirm("¿Estás seguro de que deseas eliminar a este miembro?")) {
+        try {
+            await db.collection("miembros").doc(id).delete();
+        } catch (error) {
+            alert("Error al eliminar: " + error.message);
+        }
+    }
 }
 
 // --- ESTRUCTURAS ---
@@ -171,9 +263,6 @@ function initEstructuraPage(ambito) {
         snapshot.forEach(doc => {
             listaMiembrosGlobal.push({ id: doc.id, ...doc.data() });
         });
-        if (typeof actualizarSelectDesignaciones === 'function') {
-            actualizarSelectDesignaciones();
-        }
         if (Object.keys(dataEstructuraActual).length > 0) renderEstructuraTable();
     });
 
@@ -209,7 +298,7 @@ function renderEstructuraTable() {
         if (miRolActual === "admin") {
             celdaAccion = m ? `
                 <td>
-                    <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Cambiar</button>
+                    <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Reemplazar</button>
                     <button class="btn-delete" onclick="removerCargo('${nombreCargoCompleto}')">Vaciar</button>
                 </td>
             ` : `
@@ -226,9 +315,9 @@ function renderEstructuraTable() {
                 <td><b>${nombreCargoCompleto}</b></td>
                 <td>${m.nombre || ''}</td>
                 <td>${m.apellido || ''}</td>
-                <td>${m.cedula || ''}</td>
-                <td>${m.correo || ''}</td>
-                <td>${m.telefono || ''}</td>
+                <td>${m.cedula || 'N/A'}</td>
+                <td>${m.correo || 'N/A'}</td>
+                <td>${m.telefono || 'N/A'}</td>
                 ${celdaAccion}
             `;
         } else {
@@ -241,28 +330,75 @@ function renderEstructuraTable() {
         tabla.appendChild(tr);
     });
 }
-// --- FUNCIONES INTERFAZ Y NAVEGACIÓN ---
 
-// Abre y cierra el menú lateral de 3 rayas
-function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar) {
-        sidebar.classList.toggle("active");
+// --- MODAL DE DESIGNACIÓN Y REEMPLAZO ---
+function abrirModalDesignar(cargo) {
+    cargoSeleccionado = cargo;
+    const modal = document.getElementById("modalCargo");
+    const select = document.getElementById("selectMiembroDesignar");
+    const titulo = document.getElementById("modalCargoTitulo");
+
+    if (!modal || !select) return;
+
+    titulo.innerText = `Asignar: ${cargo}`;
+    select.innerHTML = `<option value="">-- Selecciona un Miembro --</option>`;
+
+    listaMiembrosGlobal.forEach(m => {
+        select.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido} (${m.cedula || 'Sin Cédula'})</option>`;
+    });
+
+    modal.style.display = "flex";
+}
+
+function cerrarModal() {
+    const modal = document.getElementById("modalCargo");
+    if (modal) modal.style.display = "none";
+}
+
+async function confirmarDesignacion() {
+    const select = document.getElementById("selectMiembroDesignar");
+    const miembroId = select.value;
+
+    if (!miembroId) {
+        alert("Por favor selecciona a una persona de la lista.");
+        return;
+    }
+
+    try {
+        await db.collection("estructuras").doc(ambitoActual).set({
+            [cargoSeleccionado]: miembroId
+        }, { merge: true });
+
+        cerrarModal();
+    } catch (error) {
+        alert("Error al actualizar cargo: " + error.message);
     }
 }
 
-// Cierra el menú si se hace clic fuera de él
-document.addEventListener("click", (e) => {
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.querySelector(".menu-toggle");
-    if (sidebar && sidebar.classList.contains("active")) {
-        if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
-            sidebar.classList.remove("active");
+async function removerCargo(cargo) {
+    if (confirm(`¿Deseas dejar vacante el cargo ${cargo}?`)) {
+        try {
+            await db.collection("estructuras").doc(ambitoActual).set({
+                [cargo]: firebase.firestore.FieldValue.delete()
+            }, { merge: true });
+        } catch (error) {
+            alert("Error al vaciar cargo: " + error.message);
         }
     }
-});
+}
 
-// Formatea e inyecta la fecha/hora de última actualización
+// --- INTERFAZ, NAVEGACIÓN Y EXPORTACIÓN ---
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.querySelector(".sidebar-overlay");
+    if (sidebar) {
+        sidebar.classList.toggle("active");
+    }
+    if (overlay) {
+        overlay.classList.toggle("active");
+    }
+}
+
 function actualizarTimestampUI() {
     const el = document.getElementById("timestampActualizacion");
     if (!el) return;
@@ -275,7 +411,26 @@ function actualizarTimestampUI() {
     el.innerText = `Última actualización: ${fecha} - ${hora}`;
 }
 
-// Inicializar componentes al cargar
+function descargarPDF() {
+    const elemento = document.getElementById("areaExportar");
+    const titulo = document.getElementById("tituloPagina") ? document.getElementById("tituloPagina").innerText : "Reporte";
+
+    const acciones = elemento.querySelectorAll("button, .btn-primary, .btn-delete, .btn-edit");
+    acciones.forEach(el => el.style.visibility = "hidden");
+
+    const opciones = {
+        margin: [10, 10, 10, 10],
+        filename: `${titulo.replace(/\s+/g, '_')}_VenteJoven.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opciones).from(elemento).save().then(() => {
+        acciones.forEach(el => el.style.visibility = "visible");
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     actualizarTimestampUI();
 });
