@@ -3,54 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vente Joven Los Taques</title>
-    <!-- Favicon para subcarpetas -->
-    <link rel="icon" type="image/png" href="../img/ventejlostaquesicon.png">
+    <title>Resumen - Vente Joven Los Taques</title>
     <link rel="stylesheet" href="../css/estilos.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-
     <header>
-        <div class="menu-toggle" id="menuToggle">☰</div>
-        <div class="user-info" id="userInfo">Cargando...</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+            <h3>Panel Principal</h3>
+        </div>
+        <div class="user-badge" id="userRoleBadge">Cargando...</div>
     </header>
 
-    <!-- Menú Desplegable de Niveles -->
-    <nav class="sidebar" id="sidebar">
-        <div class="close-sidebar" id="closeSidebar">&times;</div>
+    <div class="sidebar" id="sidebar">
+        <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
         <ul class="sidebar-menu">
-            <li><a href="../inicio/index.html">Inicio</a></li>
-            <li class="has-children">
-                <a href="#">Estructura</a>
-                <ul class="submenu">
-                    <li><a href="../estructuramunicipal/index.html">Municipal</a></li>
-                    <li class="has-children">
-                        <a href="#">Parroquial</a>
-                        <ul class="submenu-2">
-                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
-                            <li><a href="../parroquiajudibana/index.html">Judibana</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-            <li><a href="../miembros/index.html">Miembros</a></li>
-            <li><a onclick="logout()" style="color: #ff5252; margin-top: 20px;">Cerrar Sesión</a></li>
+            <li><a href="../inicio/index.html" class="active">🏠 Inicio</a></li>
+            <li><a href="../miembros/index.html">👥 Miembros</a></li>
+            <li><a href="../estructuras/municipal.html">🏛️ Estructura Municipal</a></li>
+            <li><a href="../estructuras/los_taques.html">📍 Parroquial Los Taques</a></li>
+            <li><a href="../estructuras/judibana.html">📍 Parroquial Judibana</a></li>
+            <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
         </ul>
-    </nav>
+    </div>
 
-    <main>
-        <div class="inicio-container">
-            <img src="../img/ventejlostaques.png" class="inicio-bg-logo" alt="Watermark">
-            <h1 class="inicio-bienvenida">Bienvenido a la página de Vente Joven Los Taques</h1>
+    <main id="areaExportar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>Resumen General del Municipio</h2>
+            <button class="btn-primary" onclick="descargarPDF()">📥 Descargar PDF</button>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--texto-suave); margin-bottom: 1.5rem;" id="timestampActualizacion">
+            Última actualización: Cargando...
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="card" style="text-align: center;">
+                <h3 style="color: var(--texto-suave);">Total de Miembros</h3>
+                <p id="statTotalMiembros" style="font-size: 2.5rem; font-weight: bold; color: var(--azul-principal);">0</p>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3 style="color: var(--texto-suave);">Cargos Ocupados</h3>
+                <p id="statCargosOcupados" style="font-size: 2.5rem; font-weight: bold; color: var(--verde);">0 / 15</p>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3 style="color: var(--texto-suave);">Personas con Cargo</h3>
+                <p id="statPersonasConCargo" style="font-size: 2.5rem; font-weight: bold; color: var(--azul-oscuro);">0</p>
+            </div>
         </div>
     </main>
 
-    <footer>
-        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
-    </footer>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="../js/funciones.js"></script>
-    <script>verificarSesion();</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            initDashboard();
+        });
+    </script>
 </body>
 </html>
