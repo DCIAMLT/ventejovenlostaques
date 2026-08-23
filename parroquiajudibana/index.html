@@ -3,80 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vente Joven Los Taques</title>
-    <!-- Favicon para subcarpetas -->
-    <link rel="icon" type="image/png" href="../img/ventejlostaquesicon.png">
+    <title>Parroquial Judibana - Vente Joven</title>
     <link rel="stylesheet" href="../css/estilos.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body onload="verificarSesion(); initEstructuraPage('judibana');">
+<body>
     <header>
-        <div class="menu-toggle" id="menuToggle">☰</div>
-        <div class="user-info" id="userInfo"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+            <h3>Parroquia Judibana</h3>
+        </div>
+        <div class="user-badge" id="userRoleBadge">Cargando...</div>
     </header>
 
-    <nav class="sidebar" id="sidebar">
-        <div class="close-sidebar" id="closeSidebar">&times;</div>
+    <div class="sidebar" id="sidebar">
+        <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
         <ul class="sidebar-menu">
-            <li><a href="../inicio/index.html">Inicio</a></li>
-            <li class="has-children">
-                <a href="#">Estructura</a>
-                <ul class="submenu show">
-                    <li><a href="../estructuramunicipal/index.html">Municipal</a></li>
-                    <li class="has-children">
-                        <a href="#">Parroquial</a>
-                        <ul class="submenu-2 show">
-                            <li><a href="../parroquialostaques/index.html">Los Taques</a></li>
-                            <li><a href="../parroquiajudibana/index.html" style="color: var(--azul-oscuro)">Judibana</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-            <li><a href="../miembros/index.html">Miembros</a></li>
-            <li><a onclick="logout()" style="color: #ff5252;">Cerrar Sesión</a></li>
+            <li><a href="../inicio/index.html">🏠 Inicio</a></li>
+            <li><a href="../miembros/index.html">👥 Miembros</a></li>
+            <li><a href="../estructuras/municipal.html">🏛️ Estructura Municipal</a></li>
+            <li><a href="../estructuras/los_taques.html">📍 Parroquial Los Taques</a></li>
+            <li><a href="../estructuras/judibana.html" class="active">📍 Parroquial Judibana</a></li>
+            <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
         </ul>
-    </nav>
+    </div>
 
-    <main>
-        <h2 class="page-title">Estructura Parroquial</h2><br>
-        <h2 class="page-title">Judibana</h2>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cargo</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Cédula</th>
-                        <th>Correo Electrónico</th>
-                        <th>Teléfono</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaEstructuraBody"></tbody>
-            </table>
+    <main id="areaExportar">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h2 id="tituloPagina">Estructura Parroquia Judibana</h2>
+                <button class="btn-primary" onclick="descargarPDF()">📥 Descargar PDF</button>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--texto-suave); margin-bottom: 1.5rem;" id="timestampActualizacion">
+                Última actualización: Cargando...
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cargo</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Cédula</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEstructuraBody"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
-    <div class="modal" id="modalDesignar">
-        <div class="modal-content">
-            <h3>Realizar Designación</h3>
-            <select id="selectMiembroDesignar" class="form-control"></select>
-            <div class="modal-actions">
-                <button class="btn-action" style="background:#ccc;" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn-action btn-designar" onclick="procesarDesignacion()">Asignar Cargo</button>
+    <div id="modalCargo" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:center;">
+        <div class="card" style="width:90%; max-width:400px; background:white; padding:1.5rem; border-radius:10px;">
+            <h3 id="modalCargoTitulo">Gestionar Cargo</h3>
+            <select id="selectMiembroDesignar" class="form-control" style="margin: 1rem 0;"></select>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-primary" onclick="confirmarDesignacion()">Designar / Reemplazar</button>
+                <button class="btn-delete" onclick="cerrarModal()">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <footer>
-        ® Derechos Reservados - Vente Joven Los Taques - Coordinación Municipal
-    </footer>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="../js/funciones.js"></script>
     <script>
-        verificarSesion();
-        initEstructuraPage('judibana');
+        document.addEventListener("DOMContentLoaded", () => {
+            initEstructuraPage('judibana');
+        });
     </script>
 </body>
 </html>
