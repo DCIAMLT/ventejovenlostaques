@@ -15,7 +15,6 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // VARIABLES GLOBALES
-let miRolActual = "lector";
 let listaMiembrosGlobal = [];
 let dataEstructuraActual = {};
 let ambitoActual = "";
@@ -40,9 +39,7 @@ async function login() {
     }
 
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        await obtenerRolUsuario(userCredential.user.uid);
-        
+        await auth.signInWithEmailAndPassword(email, password);
         const currentPath = window.location.pathname;
         const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
         window.location.href = basePath + "/inicio/index.html";
@@ -63,49 +60,34 @@ function logout() {
     });
 }
 
-// --- VERIFICADOR DE SESIÓN EN TIEMPO REAL ---
-auth.onAuthStateChanged(async (user) => {
+// --- VERIFICADOR DE SESIÓN EN TIEMPO REAL (RUTAS Y RECONOCIMIENTO CORREGIDOS) ---
+auth.onAuthStateChanged((user) => {
     const path = window.location.pathname;
-    const isLoginPage = path.endsWith("index.html") && !path.includes("/inicio/") && !path.includes("/miembros/") && !path.includes("/estructura");
+    
+    // Detecta si estás dentro de alguna carpeta del sistema
+    const isInsideApp = path.includes("/inicio/") || 
+                        path.includes("/miembros/") || 
+                        path.includes("/estructuramunicipal/") || 
+                        path.includes("/parroquialostaques/") || 
+                        path.includes("/parroquiajudibana/");
 
     if (user) {
-        await obtenerRolUsuario(user.uid);
-        if (isLoginPage) {
+        const badge = document.getElementById("userRoleBadge");
+        if (badge) badge.innerText = "Usuario Activo";
+
+        // Si ya inició sesión y está en la raíz, mandarlo a Inicio
+        if (!isInsideApp && path.endsWith("index.html")) {
             const basePath = path.substring(0, path.lastIndexOf('/'));
             window.location.href = basePath + "/inicio/index.html";
         }
     } else {
-        if (!isLoginPage) {
+        // Si NO inició sesión y quiere entrar a alguna subcarpeta, mandarlo al login
+        if (isInsideApp) {
             const repositoryPath = path.substring(0, path.indexOf('/', 1));
             window.location.href = repositoryPath + "/index.html";
         }
     }
 });
-
-// --- ROL DE USUARIO ---
-async function obtenerRolUsuario(uid) {
-    try {
-        const userDoc = await db.collection("usuarios").doc(uid).get();
-        miRolActual = userDoc.exists ? (userDoc.data().rol || "lector") : "lector";
-    } catch (error) {
-        console.error("Error obteniendo rol:", error);
-        miRolActual = "lector";
-    }
-    
-    const badge = document.getElementById("userRoleBadge");
-    if (badge) {
-        badge.innerText = miRolActual === "admin" ? "Administrador" : "Lector";
-    }
-    
-    aplicarPermisosUI();
-}
-
-function aplicarPermisosUI() {
-    const elementosAdmin = document.querySelectorAll(".admin-only");
-    elementosAdmin.forEach(el => {
-        el.style.display = (miRolActual === "admin") ? "block" : "none";
-    });
-}
 
 // --- PANEL PRINCIPAL (RESUMEN) ---
 function initDashboard() {
@@ -151,7 +133,7 @@ function renderMiembrosTable() {
 function dibujarTablaMiembros() {
     const tbody = document.getElementById("tablaMiembrosBody");
     if (!tbody) return;
-    
+
     const filtro = document.getElementById("searchMiembro") ? document.getElementById("searchMiembro").value.toLowerCase() : "";
     tbody.innerHTML = "";
 
@@ -168,20 +150,16 @@ function dibujarTablaMiembros() {
 
     filtrados.forEach(m => {
         const tr = document.createElement("tr");
-        const acciones = miRolActual === "admin" ? `
-            <td>
-                <button class="btn-edit" onclick="prepararEdicion('${m.id}')">✏️</button>
-                <button class="btn-delete" onclick="eliminarMiembro('${m.id}')">❌</button>
-            </td>
-        ` : `<td><span style="color:#aaa; font-size:0.8rem;">Solo Lectura</span></td>`;
-
         tr.innerHTML = `
             <td>${m.nombre || ''}</td>
             <td>${m.apellido || ''}</td>
             <td>${m.cedula || 'N/A'}</td>
             <td>${m.telefono || 'N/A'}</td>
             <td>${m.correo || 'N/A'}</td>
-            ${acciones}
+            <td>
+                <button class="btn-edit" onclick="prepararEdicion('${m.id}')">✏️ Editar</button>
+                <button class="btn-delete" onclick="eliminarMiembro('${m.id}')">❌ Eliminar</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -294,21 +272,16 @@ function renderEstructuraTable() {
 
         const tr = document.createElement("tr");
 
-        let celdaAccion = "";
-        if (miRolActual === "admin") {
-            celdaAccion = m ? `
-                <td>
-                    <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Reemplazar</button>
-                    <button class="btn-delete" onclick="removerCargo('${nombreCargoCompleto}')">Vaciar</button>
-                </td>
-            ` : `
-                <td>
-                    <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Designar</button>
-                </td>
-            `;
-        } else {
-            celdaAccion = `<td><span style="color:#aaa; font-size:0.8rem;">Sin Permiso</span></td>`;
-        }
+        const celdaAccion = m ? `
+            <td>
+                <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Reemplazar</button>
+                <button class="btn-delete" onclick="removerCargo('${nombreCargoCompleto}')">Vaciar</button>
+            </td>
+        ` : `
+            <td>
+                <button class="btn-primary" onclick="abrirModalDesignar('${nombreCargoCompleto}')">Designar</button>
+            </td>
+        `;
 
         if (m) {
             tr.innerHTML = `
@@ -391,12 +364,8 @@ async function removerCargo(cargo) {
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const overlay = document.querySelector(".sidebar-overlay");
-    if (sidebar) {
-        sidebar.classList.toggle("active");
-    }
-    if (overlay) {
-        overlay.classList.toggle("active");
-    }
+    if (sidebar) sidebar.classList.toggle("active");
+    if (overlay) overlay.classList.toggle("active");
 }
 
 function actualizarTimestampUI() {
