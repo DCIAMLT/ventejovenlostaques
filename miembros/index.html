@@ -12,6 +12,7 @@
         .tab-btn.active { background: var(--azul-principal); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
     </style>
 </head>
 <body>
@@ -23,12 +24,16 @@
         <div class="user-badge" id="userRoleBadge">Cargando...</div>
     </header>
 
+    <!-- FONDO DE SUPERPOSICIÓN PARA CERRAR EL MENÚ -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- MENÚ LATERAL -->
     <div class="sidebar" id="sidebar">
         <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
         <ul class="sidebar-menu">
             <li><a href="../inicio/index.html">🏠 Inicio</a></li>
             <li><a href="../miembros/index.html" class="active">👥 Miembros</a></li>
-            <li><a href="../estructuras/municipal.html">🏛️ Estructura Municipal</a></li>
+            <li><a href="../estructuramunicipal/index.html">🏛️ Estructura Municipal</a></li>
             <li><a href="../estructuras/los_taques.html">📍 Parroquial Los Taques</a></li>
             <li><a href="../estructuras/judibana.html">📍 Parroquial Judibana</a></li>
             <li style="margin-top: 2rem;"><a href="#" onclick="logout()" style="color: var(--rojo);">🚪 Cerrar Sesión</a></li>
@@ -37,7 +42,7 @@
 
     <main>
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('listaTab')">📋 Lista de Miembros</button>
+            <button class="tab-btn active" id="listTabBtn" onclick="switchTab('listaTab')">📋 Lista de Miembros</button>
             <button class="tab-btn admin-only" id="formTabBtn" onclick="switchTab('formTab')">➕ Agregar / Editar Miembro</button>
         </div>
 
@@ -69,38 +74,42 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 2: FORMULARIO -->
+        <!-- PESTAÑA 2: FORMULARIO DE AGREGAR/EDITAR -->
         <div id="formTab" class="tab-content card">
             <h2 id="formTitle">Agregar Nuevo Miembro</h2>
             <form id="miembroForm" onsubmit="guardarMiembro(event)" style="margin-top: 1rem;">
                 <input type="hidden" id="miembroIdEdit">
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label>Nombre *</label>
                         <input type="text" id="nombreInput" class="form-control" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>Apellido *</label>
                         <input type="text" id="apellidoInput" class="form-control" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>Cédula (Opcional)</label>
-                        <input type="inputmode" inputmode="numeric" pattern="[0-9]*" id="cedulaInput" class="form-control" placeholder="Ej: 28123456">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="cedulaInput" class="form-control" placeholder="Ej: 28123456">
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>Teléfono (Opcional)</label>
                         <input type="tel" inputmode="tel" id="telefonoInput" class="form-control" placeholder="Ej: 04121234567">
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>Correo Electrónico (Opcional)</label>
                         <input type="email" id="correoInput" class="form-control" placeholder="ejemplo@correo.com">
                     </div>
                 </div>
-                <button type="submit" id="btnGuardarMiembro" class="btn-primary" style="margin-top: 1rem;">Guardar Miembro</button>
+                <div style="display: flex; gap: 10px; margin-top: 1rem;">
+                    <button type="submit" id="btnGuardarMiembro" class="btn-primary">Guardar Miembro</button>
+                    <button type="button" class="btn-delete" onclick="limpiarFormularioYVolver()">Cancelar</button>
+                </div>
             </form>
         </div>
     </main>
 
+    <!-- SDKs DE FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -109,11 +118,25 @@
         document.addEventListener("DOMContentLoaded", () => {
             renderMiembrosTable();
         });
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'formTab') document.getElementById('formTabBtn').classList.add('active');
+            if(tabId === 'formTab') {
+                document.getElementById('formTabBtn').classList.add('active');
+            } else {
+                document.getElementById('listTabBtn').classList.add('active');
+            }
+        }
+
+        function limpiarFormularioYVolver() {
+            document.getElementById("miembroForm").reset();
+            document.getElementById("miembroIdEdit").value = "";
+            document.getElementById("btnGuardarMiembro").innerText = "Guardar Miembro";
+            document.getElementById("formTitle").innerText = "Agregar Nuevo Miembro";
+            switchTab('listaTab');
         }
     </script>
 </body>
