@@ -24,35 +24,42 @@ body {
     min-height: 100vh;
 }
 
-/* ESTILOS DE LOGIN */
+/* ==========================================
+   ESTILOS DE LOGIN (CORREGIDO)
+   ========================================== */
 .body-login {
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--azul-oscuro), #004d40);
     padding: 1.5rem;
+    min-height: 100vh;
 }
 
 .login-container {
     background: var(--blanco);
     padding: 2.5rem 2rem;
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
     text-align: center;
 }
 
+/* Control estricto de tamaño de imagen para que no salga gigante */
 .login-container img {
-    max-width: 180px;
+    max-width: 150px !important;
+    width: 100%;
     height: auto;
-    margin-bottom: 1.5rem;
+    margin: 0 auto 1.2rem auto;
+    display: block;
 }
 
 .login-container h2 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     color: var(--texto-oscuro);
     margin-bottom: 1.5rem;
+    font-weight: 700;
 }
 
 .form-group {
@@ -71,20 +78,23 @@ body {
 .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--borde);
+    border: 1.5px solid var(--borde);
     border-radius: 8px;
     outline: none;
     font-size: 0.95rem;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    background-color: #fafafa;
 }
 
 .form-control:focus {
     border-color: var(--azul-principal);
+    background-color: var(--blanco);
+    box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.15);
 }
 
 .btn-login {
     width: 100%;
-    padding: 0.8rem;
+    padding: 0.85rem;
     background-color: var(--azul-principal);
     color: var(--blanco);
     border: none;
@@ -92,14 +102,17 @@ body {
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s ease;
+    margin-top: 0.5rem;
 }
 
 .btn-login:hover {
     background-color: var(--azul-oscuro);
 }
 
-/* HEADER Y NAVEGACIÓN */
+/* ==========================================
+   HEADER Y MENÚ NAVEGACIÓN (3 RAYAS)
+   ========================================== */
 header {
     background-color: var(--blanco);
     border-bottom: 3px solid var(--azul-principal);
@@ -108,6 +121,8 @@ header {
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 100;
 }
 
 .menu-toggle {
@@ -115,7 +130,13 @@ header {
     cursor: pointer;
     color: var(--azul-oscuro);
     user-select: none;
-    padding: 0 5px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.menu-toggle:hover {
+    background-color: var(--azul-fondo);
 }
 
 .user-badge {
@@ -127,7 +148,7 @@ header {
     font-weight: 600;
 }
 
-/* SIDEBAR CORREGIDO */
+/* SIDEBAR CORREGIDO CON TRANSICIÓN FLUIDA */
 .sidebar {
     position: fixed;
     top: 0;
@@ -136,8 +157,8 @@ header {
     height: 100%;
     background-color: var(--blanco);
     box-shadow: 4px 0 15px rgba(0,0,0,0.15);
-    z-index: 999;
-    transition: left 0.3s ease;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding-top: 3.5rem;
 }
 
@@ -152,6 +173,7 @@ header {
     font-size: 1.4rem;
     cursor: pointer;
     color: var(--texto-suave);
+    padding: 0.2rem 0.5rem;
 }
 
 .sidebar-menu {
@@ -160,19 +182,23 @@ header {
 
 .sidebar-menu li a {
     display: block;
-    padding: 0.9rem 1.5rem;
+    padding: 0.95rem 1.5rem;
     color: var(--texto-oscuro);
     text-decoration: none;
     font-weight: 500;
     transition: 0.2s;
+    border-left: 4px solid transparent;
 }
 
 .sidebar-menu li a:hover, .sidebar-menu li a.active {
     background-color: var(--azul-fondo);
     color: var(--azul-oscuro);
+    border-left-color: var(--azul-principal);
 }
 
-/* TARJETAS Y CONTENEDORES */
+/* ==========================================
+   ESTRUCTURA PRINCIPAL Y CONTENEDORES
+   ========================================== */
 main {
     padding: 1.5rem;
     max-width: 1200px;
@@ -228,6 +254,7 @@ td {
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 .btn-primary:hover {
